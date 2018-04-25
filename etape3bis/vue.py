@@ -26,12 +26,13 @@ class VueSame:
     #--------------
 
     #Bouton nouvelle partie et quitter
+        self.__lbscore = Label(self.__fen, text=str(self.__same.score()))
+        self.__lbscore.grid(row=int(self.__same.nblig()/2) - 1,column=self.__same.nbcol())
         nouvellepartie=Button(self.__fen,text="Nouvelle partie",command=self.newgame)
         nouvellepartie.grid(row=int(self.__same.nblig()/2),column=self.__same.nbcol())
         quitter=Button(self.__fen,text="Quitter",command=self.__fen.destroy)
         quitter.grid(row=int(self.__same.nblig()/2)+1,column=self.__same.nbcol())
     #----------------------
-        self.__same.calcule_composantes()
         mainloop()
     
     def update(self):
@@ -39,7 +40,7 @@ class VueSame:
         for i in range(self.__same.nblig()):
             for j in range(self.__same.nbcol()):
                 self.__listebutton[i][j].config(image=self.__images[self.__same.couleur(i,j)])
-        self.recalc_composantes()
+        self.__lbscore["text"] = str(self.__same.score())
 
     def newgame(self):
         '''Démarre une nouvelle partie'''
@@ -53,10 +54,6 @@ class VueSame:
             self.__same.supprime_bille(i,j)
             self.update()
         return controleur_btn
-
-    def recalc_composantes(self):
-        self.__same.reset_composante()
-        self.__same.calcule_composantes()
 
 if __name__ == "__main__":
 # création du modèle

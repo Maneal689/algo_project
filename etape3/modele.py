@@ -6,6 +6,7 @@ class Case:
     def __init__(self,couleur):
         '''Initialise la case'''
         self.__couleur=couleur
+        self.__compo=-1
 
     def couleur(self):
         '''Retourne la couleur de la case  /  return : int'''
@@ -13,17 +14,33 @@ class Case:
 
     def change_couleur(self,couleur):
         '''Change la couleur de la case  /  Case(modif)'''
-        self.__couleur = couleur
-        self.__compo = -1
+        self.__couleur=couleur
+        self.__compo=-1
 
     def supprime(self):
         '''Supprime la case (passe la couleur a -1)  /  Case(modif)'''
-        self.__couleur = -1
-        self.__compo = 0
+        self.__couleur=-1
+        self.__compo=0
 
     def est_vide(self):
         '''Retourne True si la case est vide(self.__couleur=-1)  /  return : boolean'''
         return self.__couleur == -1
+    
+    def composante(self):
+        '''Donne le numéro de composante de la case  /  return : int'''
+        return self.__compo
+    
+    def pose_composante(self,nb):
+        '''Change le numéro de composante de la case  /  Case(modif)'''
+        self.__compo=nb
+
+    def supprime_composante(self):
+        '''Supprime la composante (la reinit a -1)  /  Case(modif)'''
+        self.__compo=-1
+
+    def parcourue(self):
+        '''Regarde si la case a déja eu un numéro de composante attribué  /  return : boolean'''
+        return self.__compo!=-1
 
 class ModeleSame:
     '''Defini le plateau de jeu'''
@@ -34,6 +51,7 @@ class ModeleSame:
         self.__nbcolonne=nbc
         self.__nbcouleur=nbcouleur
         self.__score=0
+        self.__nb_elts_compo=[]
     #Creation de la matrice du plateau de jeu
         self.__mat=[]
         for i in range(self.__nbligne):
@@ -67,51 +85,93 @@ class ModeleSame:
 
     def supprime_bille(self,i,j):
         '''Supprime une bille en mettant la valeur de sa couleur a -1  /  ModeleSame(modif)'''
-        if (self.__mat[i][j].couleur() != -1):
-            l_asuppr = []
-            l_asuppr.append((i, j))
-            self.ajoute_meme_couleur(l_asuppr, i, j, self.__mat[i][j].couleur())
-            if (len(l_asuppr) >= 2):
-                self.__score += (len(l_asuppr) - 2) ** 2
-                for elm in l_asuppr:
-                    self.__mat[elm[0]][elm[1]].supprime()
-                self.supprime_colonne_vide()
-                self.tombe_bille()
-                return (True)
-        return (False)
+        self.supprime_composante(self.__mat[i][j].composante())
+        self.supprime_colonne_vide()
 
     def nouvelle_partie(self):
+        self.__score = 0
         for i in range (self.__nbligne):
             for j in range(self.__nbcolonne):
                 self.__mat[i][j].change_couleur(randint(0,self.__nbcouleur-1))
-        self.__score = 0
 
-    def coords_autour(self, i, j):
-        res = []
-        if (self.coords_valides(i - 1, j)):
-            res.append((i - 1, j))
-        if (self.coords_valides(i + 1, j)):
-            res.append((i + 1, j))
-        if (self.coords_valides(i, j - 1)):
-            res.append((i, j - 1))
-        if (self.coords_valides(i, j + 1)):
-            res.append((i, j + 1))
-        return (res)
+    def composante(self,i,j):
+        '''Renvoie le numéro de composante de la case en (i,j)  /  return : int'''
+        return self.__mat[i][j].composante()
+    
+    def calcule_composantes(self):
+        '''Lance le calcul des composantes sur toutes les cases de la matrice'''
+        self.__nb_elts_compo=[0]
+        num_compo=1
+        for i in range (self.nblig()):
+            for j in range(self.nbcol()):
+                print(self.__mat[i][j].composante())
+                if self.__mat[i][j].composante()==-1:
+                    couleur=self.__mat[i][j].couleur()
+                    a=self.calcule_composante_numero(i,j,num_compo,couleur)
+                    print(a)
+                    self.__nb_elts_compo.append(a)
+                    num_compo+=1
+    
+    def calcule_composante_numero(self,i,j,num_compo,couleur):
+        '''Attribut un numero de composante et compte la taille du groupe  /  return : int'''
+        if not self.coords_valides(i,j):
+            return 0
+        if self.__mat[i][j].parcourue() or self.__mat[i][j].couleur()!=couleur:
+            return 0
+        else:
+            self.__mat[i][j].pose_composante(num_compo)
+            return 1 + self.calcule_composante_numero(i,j+1,num_compo,couleur) + self.calcule_composante_numero(i,j-1,num_compo,couleur) + self.calcule_composante_numero(i+1,j,num_compo,couleur) + self.calcule_composante_numero(i-1,j,num_compo,couleur)
+        
 
-    def ajoute_meme_couleur(self, lsuppr, i, j, couleur):
+    def reset_composante(self):
+        '''Reset les composantes du plateau'''
+        for i in range(self.nblig()):
+            for j in range(self.nbcol()):
+                self.__mat[i][j].pose_composante(-1)
+
+    def supprime_composante(self,num_compo):
+        '''Supprime une composante'''
+        if (self.__nb_elts_compo[num_compo]>=2):
+            self.__score+=(self.__nb_elts_compo[num_compo]-2) ** 2
+            i=0
+            while i<self.nblig():
+                j=0
+                while j<self.nbcol():
+                    if (self.__mat[i][j].composante() == num_compo):
+                        self.supprime_composante_colonne(j,num_compo)
+                    j+=1
+                i+=1
+
+
+    def case_vide(self,i,j):
+        '''Retourne True si la case est vide  /  return : boolean'''
+        return self.__mat[i][j].couleur() == -1
+
+    def supprime_composante_colonne(self,j,num_compo):
+        for i in range(self.nblig()):
+            if self.__mat[i][j].composante() == num_compo:
+                self.__mat[i][j].supprime()
+                tmp=self.descend_vert(j)
+                while tmp == True:
+                    tmp=self.descend_vert(j)
+
+    def descend_vert(self,j):
         """
-        Fonction qui ajoute a lsuppr (list((int, int))) les coordonnées des billes de même couleur que couleur
-        ModeleSame, list(int, int), int, int, int -> None
+        Fait tomber les billes de la colonner j à la verticale
+        ModeleSame, int -> boolean
         """
-        coord_at = self.coords_autour(i, j)
-        for coord in coord_at:
-            if (self.__mat[coord[0]][coord[1]].couleur() == couleur and coord not in lsuppr):
-                lsuppr.append((coord[0], coord[1]))
-                self.ajoute_meme_couleur(lsuppr, coord[0], coord[1], couleur)
+        tmp=False
+        for i in range(self.nblig()):
+            if not self.case_vide(i,j):
+                if 0<=(i+1)<self.nblig() and self.case_vide(i+1,j):
+                    self.__mat[i][j], self.__mat[i+1][j] = self.__mat[i+1][j], self.__mat[i][j]
+                    tmp=True
+        return tmp
 
     def colonne_vide(self, col):
         """
-
+        Vérifie si la colonne col, est vide ou non
+        ModeleSame, int -> boolean
         """
         i = 0
         while (i < self.nblig()):
@@ -120,27 +180,10 @@ class ModeleSame:
             i += 1
         return (True)
 
-    def tombe_bille(self):
-        """
-        Met a jour les Cases en fonction des vides présents (fait tomber les billes)
-        ModeleSame -> None
-        """
-        i = 0
-        while (i < self.__nbligne):
-            j = 0
-            while (j < self.__nbcolonne):
-                if (self.couleur(i, j) == -1):
-                    k = i
-                    while (k >= 1):
-                        self.__mat[k][j].change_couleur(self.__mat[k - 1][j].couleur())
-                        k -= 1
-                    self.__mat[0][j].supprime()
-                j += 1
-            i += 1
-
     def supprime_colonne_vide(self):
         """
-        
+        Supprime les colonnes vides et décale les billes vers la gauche 
+        ModeleSame -> None
         """
         cpt = 0
         while (cpt < self.nbcol()):
@@ -154,3 +197,9 @@ class ModeleSame:
                         i += 1
                 col += 1
             cpt += 1
+    
+
+
+
+
+
