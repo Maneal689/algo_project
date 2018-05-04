@@ -1,0 +1,93 @@
+from tkinter import *
+from modele import *
+
+class VueSame:
+    '''Defini la vue du jeu'''
+
+    def __init__(self,same):
+        '''Initialise la vue du same'''
+        self.__same=same
+        self.__fen=Tk()
+        self.__fen.title("SAMEEEEEEEEEEEEE")
+    #Liste images
+        self.__images=[]
+        self.__imagesnoir = []
+        for i in range(self.__same.nbcouleur()):
+            self.__images.append(PhotoImage(file="img/medium_sphere"+str(i+1)+".gif"))
+            self.__imagesnoir.append(PhotoImage(file = "img/medium_sphere" + str(i + 1) + "black.gif"))
+        self.__images.append(PhotoImage(file="img/medium_spherevide.gif"))
+        self.__imagesnoir.append(PhotoImage(file="img/medium_spherevide.gif"))
+    #------------
+
+    #Liste boutons
+        self.__listebutton=[]
+        for i in range(self.__same.nblig()):
+            self.__listebutton.append([])
+            for j in range(self.__same.nbcol()):
+                self.__listebutton[i].append(Button(self.__fen,image=self.__images[self.__same.couleur(i,j)],command=self.creer_controleur_btn(i,j)))
+                self.__listebutton[i][j].grid(row=i,column=j)
+                self.__listebutton[i][j].bind("<Motion>", self.creer_controleur_entree(i, j))
+                self.__listebutton[i][j].bind("<Leave>", self.creer_controleur_sortie(i, j))
+
+    #--------------
+
+    #Bouton nouvelle partie et quitter
+        self.__lbscore = Label(self.__fen, text=str(self.__same.score()))
+        self.__lbscore.grid(row=int(self.__same.nblig()/2) - 1,column=self.__same.nbcol())
+        nouvellepartie=Button(self.__fen,text="Nouvelle partie",command=self.newgame)
+        nouvellepartie.grid(row=int(self.__same.nblig()/2),column=self.__same.nbcol())
+        quitter=Button(self.__fen,text="Quitter",command=self.__fen.destroy)
+        quitter.grid(row=int(self.__same.nblig()/2)+1,column=self.__same.nbcol())
+    #----------------------
+        mainloop()
+    
+    def update(self):
+        '''Met a jour les images des boutons selon la valeur dans self.__same'''
+        for i in range(self.__same.nblig()):
+            for j in range(self.__same.nbcol()):
+                if (self.__same.select(i, j)):
+                    self.__listebutton[i][j].config(image=self.__imagesnoir[self.__same.couleur(i,j)])
+                else:
+                    self.__listebutton[i][j].config(image=self.__images[self.__same.couleur(i,j)])
+        self.__lbscore["text"] = str(self.__same.score())
+
+    def newgame(self):
+        '''Démarre une nouvelle partie'''
+        self.__same.nouvelle_partie()
+        self.update()
+    
+    def creer_controleur_entree(self, i, j):
+        """Retourne une fonction spécifique à la position i, j
+        VueSame, int, int -> function"""
+        def controleur(event):
+            """Fonction qui selectionne un bouton
+            None -> None"""
+            self.__same.change_select(i, j, True)
+            self.update()
+        return (controleur)
+
+    def creer_controleur_sortie(self, i, j):
+        """Retourne une fonction spécifique à la position i, j
+        VueSame, int, int -> function"""
+        def controleur(event):
+            """Fonction qui déselectionne un bouton
+            None -> None"""
+            self.__same.change_select(i, j, False)
+            self.update()
+        return (controleur)
+
+
+    def creer_controleur_btn(self,i,j):
+        '''retourne une fonction  /  return:function'''
+        def controleur_btn():
+            '''supprime la bille quand le joueur clique dessus  /  VueSame(modif)'''
+            self.__same.supprime_bille(i,j)
+            self.update()
+        return controleur_btn
+
+if __name__ == "__main__":
+# création du modèle
+    same = ModeleSame()
+# création de la vue qui créé les contrôleurs
+# et lance la boucle d’écoute des évts
+    vue = VueSame(same)
