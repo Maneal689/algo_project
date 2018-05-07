@@ -85,8 +85,9 @@ class ModeleSame:
 
     def supprime_bille(self,i,j):
         '''Supprime une bille en mettant la valeur de sa couleur a -1  /  ModeleSame(modif)'''
-        self.supprime_composante(self.__mat[i][j].composante())
-        self.supprime_colonne_vide()
+        if self.__mat[i][j].couleur()!=-1: 
+            self.supprime_composante(self.__mat[i][j].composante())
+            self.supprime_colonne_vide()
 
     def nouvelle_partie(self):
         self.__score = 0
@@ -129,17 +130,16 @@ class ModeleSame:
 
     def supprime_composante(self,num_compo):
         '''Supprime une composante'''
-        if num_compo!=0:
-            if (self.__nb_elts_compo[num_compo]>=2):
-                self.__score+=(self.__nb_elts_compo[num_compo]-2) ** 2
-                i=0
-                while i<self.nblig():
-                    j=0
-                    while j<self.nbcol():
-                        if (self.__mat[i][j].composante() == num_compo):
-                            self.supprime_composante_colonne(j,num_compo)
-                        j+=1
-                    i+=1
+        if (self.__nb_elts_compo[num_compo]>=2):
+            self.__score+=(self.__nb_elts_compo[num_compo]-2) ** 2
+            i=0
+            while i<self.nblig():
+                j=0
+                while j<self.nbcol():
+                    if (self.__mat[i][j].composante() == num_compo):
+                        self.supprime_composante_colonne(j,num_compo)
+                    j+=1
+                i+=1
 
 
     def case_vide(self,i,j):
@@ -199,7 +199,7 @@ class ModeleSame:
     
     def nb_elmts_compo(self,x):
         '''Donne le nbre d elements dans la compo x'''
-        return self.__nb_elts_compo[x]
+            return self.__nb_elts_compo[x]
 
 
 

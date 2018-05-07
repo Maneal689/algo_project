@@ -61,9 +61,8 @@ class VueSame:
         '''retourne une fonction  /  return:function'''
         def controleur_btn():
             '''supprime la bille quand le joueur clique dessus  /  VueSame(modif)'''
-            if self.__same.composante(i,j)!=0:
-                self.__same.supprime_bille(i,j)
-                self.update()
+            self.__same.supprime_bille(i,j)
+            self.update()
         return controleur_btn
 
     def creer_controleur_btn_motion(self,x,y):
