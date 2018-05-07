@@ -104,11 +104,9 @@ class ModeleSame:
         num_compo=1
         for i in range (self.nblig()):
             for j in range(self.nbcol()):
-                print(self.__mat[i][j].composante())
                 if self.__mat[i][j].composante()==-1:
                     couleur=self.__mat[i][j].couleur()
                     a=self.calcule_composante_numero(i,j,num_compo,couleur)
-                    print(a)
                     self.__nb_elts_compo.append(a)
                     num_compo+=1
     
@@ -131,16 +129,17 @@ class ModeleSame:
 
     def supprime_composante(self,num_compo):
         '''Supprime une composante'''
-        if (self.__nb_elts_compo[num_compo]>=2):
-            self.__score+=(self.__nb_elts_compo[num_compo]-2) ** 2
-            i=0
-            while i<self.nblig():
-                j=0
-                while j<self.nbcol():
-                    if (self.__mat[i][j].composante() == num_compo):
-                        self.supprime_composante_colonne(j,num_compo)
-                    j+=1
-                i+=1
+        if num_compo!=0:
+            if (self.__nb_elts_compo[num_compo]>=2):
+                self.__score+=(self.__nb_elts_compo[num_compo]-2) ** 2
+                i=0
+                while i<self.nblig():
+                    j=0
+                    while j<self.nbcol():
+                        if (self.__mat[i][j].composante() == num_compo):
+                            self.supprime_composante_colonne(j,num_compo)
+                        j+=1
+                    i+=1
 
 
     def case_vide(self,i,j):
@@ -198,7 +197,9 @@ class ModeleSame:
                 col += 1
             cpt += 1
     
-
+    def nb_elmts_compo(self,x):
+        '''Donne le nbre d elements dans la compo x'''
+        return self.__nb_elts_compo[x]
 
 
 

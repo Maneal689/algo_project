@@ -36,7 +36,9 @@ class VueSame:
         quitter=Button(self.__fen,text="Quitter",command=self.__fen.destroy)
         quitter.grid(row=int(self.__same.nblig()/2)+1,column=self.__same.nbcol())
     #----------------------
-        self.__lbscore = Label(self.__fen, text=str(self.__same.score()))
+        self.__lbptscompo= Label(self.__fen,text="Pts compo : ")
+        self.__lbptscompo.grid(row=int(self.__same.nblig()/2)-2,column=self.__same.nbcol())
+        self.__lbscore = Label(self.__fen, text="Score : "+str(self.__same.score()))
         self.__lbscore.grid(row=int(self.__same.nblig()/2) - 1,column=self.__same.nbcol())
     #----------------------
         self.__same.calcule_composantes()
@@ -48,7 +50,7 @@ class VueSame:
             for j in range(self.__same.nbcol()):
                 self.__listebutton[i][j].config(image=self.__images[self.__same.couleur(i,j)])
         self.recalc_composantes()
-        self.__lbscore["text"] = str(self.__same.score())
+        self.__lbscore["text"] = "Score : "+str(self.__same.score())
 
     def newgame(self):
         '''Démarre une nouvelle partie'''
@@ -59,8 +61,9 @@ class VueSame:
         '''retourne une fonction  /  return:function'''
         def controleur_btn():
             '''supprime la bille quand le joueur clique dessus  /  VueSame(modif)'''
-            self.__same.supprime_bille(i,j)
-            self.update()
+            if self.__same.composante(i,j)!=0:
+                self.__same.supprime_bille(i,j)
+                self.update()
         return controleur_btn
 
     def creer_controleur_btn_motion(self,x,y):
@@ -68,6 +71,7 @@ class VueSame:
         def controleur_btn_motion(event):
             '''passe toutes les images de boutons de la composante en noir'''
             composante=self.__same.composante(x,y)
+            self.__lbptscompo["text"]="Pts compo : "+str(self.calcul_pts_composante(x,y))
             for i in range(self.__same.nblig()):
                 for j in range(self.__same.nbcol()):
                     if self.__same.composante(i,j)==composante:
@@ -84,6 +88,11 @@ class VueSame:
     def recalc_composantes(self):
         self.__same.reset_composante()
         self.__same.calcule_composantes()
+
+    def calcul_pts_composante(self,i,j):
+        '''Calcul le nombre de points de la compo'''
+        return ((self.__same.nb_elmts_compo(self.__same.composante(i,j)))-2)**2
+
 
 if __name__ == "__main__":
 # création du modèle
